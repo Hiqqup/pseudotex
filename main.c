@@ -30,29 +30,36 @@ struct keyword* setDefaultKeywords()
     keys = addKeyword("return", "magenta", keys);
     return keys;
 }
-char* fullInputDir(char* filename)
+char* readFile(char* dir)
 {
-    char currentDir[PATH_MAX];
-    if (getcwd(currentDir, sizeof(currentDir)) == NULL) {
-        perror("getcwd() error");
+    FILE* filePtr = fopen(dir, "r");
+
+    if (filePtr == NULL) {
+        perror("fopen() error");
         exit(1);
     }
-    char* dirPtr = malloc((strlen(currentDir) + strlen(filename) + 1) * sizeof(char));
-    for (int i = 0; i < strlen(currentDir); i++) {
-        dirPtr[i] = currentDir[i];
+
+    fseek(filePtr, 0, SEEK_END);
+    long numChars = ftell(filePtr);
+    fseek(filePtr, 0, SEEK_SET);
+
+    char* charArray = malloc(numChars * sizeof(char));
+    if (charArray == NULL) {
+        perror("Memory allocation failed.\n");
+        exit(1);
     }
-    dirPtr[strlen(currentDir)] = '/';
-    for (int i = 0; i <= strlen(filename); i++) {
-        dirPtr[strlen(currentDir) + i + 1] = filename[i];
-    }
-    return dirPtr;
+    fread(charArray, sizeof(char), numChars, filePtr);
+
+    fclose(filePtr);
+    return charArray;
 }
 int main(int argc, char* argv[])
 {
     struct keyword* tmp;
     struct keyword* keys = setDefaultKeywords();
 
-    printf("cwd: %s\n", fullInputDir("input"));
+    char* fileContents = readFile("input");
+    printf("the file: %s\n", fileContents);
     /* from the example */
     HASH_FIND_STR(keys, "for", tmp);
     if (tmp)
