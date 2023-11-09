@@ -1,0 +1,32 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+function hirschIndex(\textcolor{cyan}{int}[] arr) 
+    \textcolor{gray}{//wir fangen bei 0 an zu zählen}
+   \textcolor{magenta}{if} arr.length == 0 \textcolor{magenta}{then}
+        \textcolor{magenta}{return} 0
+    \textcolor{magenta}{end}
+    \textcolor{gray}{//aus vorlesung}
+   mergeSort(arr)
+    \textcolor{gray}{//array um zitieurngen zu zählen}
+   \textcolor{cyan}{int} cite[] = new \textcolor{cyan}{int}[arr.length]
+    cite[0] = 1
+    \textcolor{cyan}{int} j = 0
+    \textcolor{magenta}{for} \textcolor{cyan}{int} i = 1, i < arr.length, i++ \textcolor{magenta}{do}
+        \textcolor{gray}{//wenn wir werk wechseln, zählen wir im nächsten eintrag weiter}
+       \textcolor{magenta}{if} arr[i - 1] != arr[i] \textcolor{magenta}{then}
+            j++
+        \textcolor{magenta}{end}
+        \textcolor{gray}{//momentane zitierung ikrementieren}
+       cite[j]++
+    \textcolor{magenta}{end}
+    \textcolor{gray}{//aus vorlesung}
+   mergeSort(cite)
+    \textcolor{gray}{//hirsch bestimmen und zurückgeben}
+   \textcolor{cyan}{int} hirsch = 0
+    \textcolor{magenta}{for} \textcolor{cyan}{int} i = 0, i < cite.length, i++ \textcolor{magenta}{do}
+        \textcolor{gray}{//mit min prüfen wir beide Bedingungen des Hirschindex}
+       \textcolor{gray}{//mit max nehmen wir den neune gültigen wert falls er größer ist als Vorher}
+       hirsch = Math.max(Math.min(cite[i], cite.length - i), hirsch)
+    \textcolor{magenta}{end}
+    \textcolor{magenta}{return} hirsch
+\textcolor{magenta}{end}
+\end{Verbatim}

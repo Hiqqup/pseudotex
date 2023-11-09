@@ -1,4 +1,5 @@
 
 
 main:
-	gcc main.c && ./a.out
+	gcc main.c 
+	./a.out > textest/out.tex 

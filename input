@@ -1,27 +1,30 @@
-carpeted kitchen
-aksjdkajskd
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-asdaskdjkaj
+function hirschIndex(int[] arr) 
+    //wir fangen bei 0 an zu zählen
+    if arr.length == 0 then
+        return 0
+    end
+    //aus vorlesung
+    mergeSort(arr)
+    //array um zitieurngen zu zählen
+    int cite[] = new int[arr.length]
+    cite[0] = 1
+    int j = 0
+    for int i = 1, i < arr.length, i++ do
+        //wenn wir werk wechseln, zählen wir im nächsten eintrag weiter
+        if arr[i - 1] != arr[i] then
+            j++
+        end
+        //momentane zitierung ikrementieren
+        cite[j]++
+    end
+    //aus vorlesung
+    mergeSort(cite)
+    //hirsch bestimmen und zurückgeben
+    int hirsch = 0
+    for int i = 0, i < cite.length, i++ do
+        //mit min prüfen wir beide Bedingungen des Hirschindex
+        //mit max nehmen wir den neune gültigen wert falls er größer ist als Vorher
+        hirsch = Math.max(Math.min(cite[i], cite.length - i), hirsch)
+    end
+    return hirsch
+end
