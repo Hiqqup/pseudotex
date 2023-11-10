@@ -101,40 +101,40 @@ void parseForKeywords(struct keyword* keys, char* fileContents, struct keyword* 
     printf("\\end{Verbatim}\n");
 }
 
-char* parseJsonColor(FILE* filePtr, char c)
+char* parseJsonColor(char* contents, int* i)
 {
     char* color = malloc(8 * sizeof(char));
     int colorPtr = 0;
-    c = fgetc(filePtr);
-    while (c != '"') {
-        if (c == EOF) {
+    *i += 1;
+    while (contents[*i] != '"') {
+        if (*i > strlen(contents)) {
             perror("invalid json, didnt end string");
             exit(1);
         }
-        color[colorPtr] = c;
+        color[colorPtr] = contents[*i];
         colorPtr++;
-        c = fgetc(filePtr);
+        *i += 1;
     }
     color[colorPtr] = '\0';
-    c = fgetc(filePtr);
+    *i += 1;
     return color;
 }
-struct keyword* parseJsonKeyword(FILE* filePtr, char c, char* color, struct keyword* keys)
+struct keyword* parseJsonKeyword(char* contents, int* i, char* color, struct keyword* keys)
 {
     char word[MAX_INPUT];
     int wordPtr = 0;
-    c = fgetc(filePtr);
-    while (c != '"') {
-        if (c == EOF) {
+    *i += 1;
+    while (contents[*i] != '"') {
+        if (*i >= strlen(contents)) {
             perror("invalid json, didnt end string");
             exit(1);
         }
-        word[wordPtr] = c;
+        word[wordPtr] = contents[*i];
         wordPtr++;
-        c = fgetc(filePtr);
+        *i += 1;
     }
     word[wordPtr] = '\0';
-    c = fgetc(filePtr);
+    *i += 1;
 
     /*overwrite key if it already exists*/
     struct keyword* tmp;
@@ -149,80 +149,101 @@ struct keyword* parseJsonKeyword(FILE* filePtr, char c, char* color, struct keyw
 
     return keys;
 }
-struct keyword* parseJsonKeyfile(char* dir, struct keyword* keys)
+struct keyword* parseJsonKeyfile(char* contents, struct keyword* keys)
 {
-    FILE* filePtr = fopen(dir, "r");
 
-    if (filePtr == NULL) {
-        perror("fopen() error");
-        exit(1);
-    }
-    char c = fgetc(filePtr);
+    printf("contents: %s\n", contents);
     int blockLevel = 0;
     char* currentColor;
-    while (c != EOF) {
-        if (c == '"' && blockLevel == 0) {
-            currentColor = parseJsonColor(filePtr, c);
-            // printf("current color set to: %s\n", currentColor);
+    int* i = malloc(sizeof(int));
+    for (*i = 0; *i < strlen(contents); *i += 1) {
+        if (contents[*i] == '"' && blockLevel == 0) {
+            currentColor = parseJsonColor(contents, i);
+            //  printf("current color set to: %s\n", currentColor);
         }
-        if (c == '"' && blockLevel == 1) {
-            keys = parseJsonKeyword(filePtr, c, currentColor, keys);
+        if (contents[*i] == '"' && blockLevel == 1) {
+            keys = parseJsonKeyword(contents, i, currentColor, keys);
         }
-        if (c == '{') {
+        if (contents[*i] == '{') {
             blockLevel++;
             if (blockLevel > 2) {
                 perror("invalid json, deep to block\n");
             }
         }
-        if (c == '}')
+        if (contents[*i] == '}')
             blockLevel--;
-        c = fgetc(filePtr);
     }
     if (blockLevel != 0) {
         perror("invalid json, didnt end block\n");
     }
-    if (!feof(filePtr)) {
-        perror("failed to parse keyfile\n");
-    }
-    fclose(filePtr);
+    // free(i);
+    // free(contents);
     return keys;
 }
 
 struct keyword* keys = NULL;
-char* fileName = NULL;
-char* keyFileName = NULL;
-bool appendKeys = false;
 char* fileContents = NULL;
 void parseArgs(int argc, char* argv[])
 {
     /* parse input arguments for information and flags*/
     for (int i = 1; i < argc; i++) {
         if (argv[i][0] != '-') {
-            if (fileName != NULL) {
+            if (fileContents != NULL) {
+                printf("Duplicate filename: %s\n", argv[i]);
                 printf("Only one filename can be entered\n");
                 exit(1);
             }
-            fileName = argv[i];
+            fileContents = readFile(argv[i]);
 
         } else
             switch (argv[i][1]) {
             case 'k':
                 /*keyfile flag*/
-                if (argv[i][2] == 'a')
-                    /*append to default flag*/
-                    appendKeys = true;
-                i++;
-                if (i >= argc || argv[i][0] == '-') {
-                    printf("Usage:\t -k <input file>\n");
+                switch (argv[i][2]) {
+                case 's':
+                    keys = setDefaultKeywords();
+                    /*put code to parse string here*/
+
+                    i++;
+
+                    if (i >= argc || argv[i][0] == '-') {
+                        printf("Usage:\t -k <keyword file>\n");
+                        exit(1);
+                    } else {
+                        keys = parseJsonKeyfile(argv[i], keys);
+                    }
+                    break;
+                case 'a':
+                    keys = setDefaultKeywords();
+                    break;
+                case '\0':
+                    i++;
+
+                    if (i >= argc || argv[i][0] == '-') {
+                        printf("Usage:\t -k <keyword file>\n");
+                        exit(1);
+                    } else {
+                        char* tmp = readFile(argv[i]);
+                        keys = parseJsonKeyfile(tmp, keys);
+                        free(tmp);
+                    }
+                    break;
+                default:
+                    printf("Unkown Flag\n");
                     exit(1);
-                } else {
-                    keyFileName = argv[i];
+                    break;
                 }
                 break;
             case 'm':
                 /*parse string itead of input flag*/
                 i++;
-                fileContents = argv[i];
+                if (i >= argc || argv[i][0] == '-') {
+                    printf("Usage:\t -m <input string>\n");
+                    exit(1);
+                } else {
+                    fileContents = argv[i];
+                }
+
                 break;
             case 'h':
                 printf("Flags:\n");
@@ -230,38 +251,33 @@ void parseArgs(int argc, char* argv[])
                 printf("\t-m\t to pass string instead of filepath\n");
                 printf("\t-k\t to pass custom Json-keyfile\n");
                 printf("\t-ka\t to pass custom Json-keyfile, and append and overwirte default\n");
+                printf("\t-ks\t to pass custom Json-string, and append and overwirte default\n");
                 printf("\n");
 
                 exit(0);
                 break;
             }
     }
-    if (fileName == NULL && fileContents == NULL) {
-        printf("Usage:\t <input file> or use -m\n");
+    if (fileContents == NULL) {
+        printf("Usage:\t <input file> or use -m <input string>\n");
         exit(1);
+    }
+    if (keys == NULL) {
+        keys = setDefaultKeywords();
     }
 }
 
 int main(int argc, char* argv[])
 {
     parseArgs(argc, argv);
-    /*set default values*/
-    if (keyFileName == NULL || appendKeys) {
-        keys = setDefaultKeywords();
-    }
-    /* parse keywords*/
-    if (keyFileName != NULL) {
-        keys = parseJsonKeyfile(keyFileName, keys);
-    }
 
     struct keyword *tmp, *tmp2;
 
     /* parse keywords*/
-    if (fileName != NULL) {
-        fileContents = readFile(fileName /*put file path here*/);
-    }
     if (fileContents != NULL) {
         parseForKeywords(keys, fileContents, tmp);
+    } else {
+        printf("no input provided\n");
     }
 
     /* free the hash table contents */
