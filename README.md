@@ -30,9 +30,10 @@ To append input to an existing Tex file
 ```sh
 ./pseudotex -m "$(xclip -o -sel c)"| xclip -sel c
 ```
-To directly convert your clipboard clipboard assuming you are using X
-
+To directly convert your clipboard clipboard assuming you are using X.
 You could create an alias or put the binary into /usr/local/bin, so you dont have to type the binary path.
+For that run: ```sudo make alias```
+
 
 ---
 ### Custom Keywordfile
