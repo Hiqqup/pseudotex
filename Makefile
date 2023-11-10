@@ -1,5 +1,7 @@
 
 
+mainc:
+	gcc main.c 
 main:
 	gcc main.c 
-	./a.out > textest/out.tex 
+	./a.out input > textest/out.tex 

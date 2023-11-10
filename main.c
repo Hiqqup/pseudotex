@@ -1,4 +1,5 @@
 #include "uthash.h"
+#include <inttypes.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdio.h> /* printf */
@@ -95,23 +96,158 @@ void parseForKeywords(struct keyword* keys, char* fileContents, struct keyword* 
     }
     printf("\\end{Verbatim}\n");
 }
-int main(int argc, char* argv[])
+
+char* parseJsonColor(FILE* filePtr, char c)
 {
+    char* color = malloc(8 * sizeof(char));
+    int colorPtr = 0;
+    c = fgetc(filePtr);
+    while (c != '"') {
+        if (c == EOF) {
+            perror("invalid json, didnt end string");
+            exit(1);
+        }
+        color[colorPtr] = c;
+        colorPtr++;
+        c = fgetc(filePtr);
+    }
+    color[colorPtr] = '\0';
+    c = fgetc(filePtr);
+    return color;
+}
+struct keyword* parseJsonKeyword(FILE* filePtr, char c, char* color, struct keyword* keys)
+{
+    char word[MAX_INPUT];
+    int wordPtr = 0;
+    c = fgetc(filePtr);
+    while (c != '"') {
+        if (c == EOF) {
+            perror("invalid json, didnt end string");
+            exit(1);
+        }
+        word[wordPtr] = c;
+        wordPtr++;
+        c = fgetc(filePtr);
+    }
+    word[wordPtr] = '\0';
+    c = fgetc(filePtr);
+
+    /*overwrite key if it already exists*/
     struct keyword* tmp;
-    struct keyword* keys = setDefaultKeywords();
+    HASH_FIND_STR(keys, word, tmp);
+    if (tmp) {
+        tmp->color = color;
+    } else {
+        /*add a new one*/
+        keys = addKeyword(word, color, keys);
+    }
+    // printf("Added Key: %s to Color: %s\n", word, color);
 
-    FILE* outputPtr = fopen("output", "w");
+    return keys;
+}
+struct keyword* parseJsonKeyfile(char* dir, struct keyword* keys)
+{
+    FILE* filePtr = fopen(dir, "r");
 
-    if (outputPtr == NULL) {
+    if (filePtr == NULL) {
         perror("fopen() error");
         exit(1);
     }
-    fclose(outputPtr);
-    char* fileContents = readFile("input");
-    parseForKeywords(keys, fileContents, tmp);
+    char c = fgetc(filePtr);
+    int blockLevel = 0;
+    char* currentColor;
+    while (c != EOF) {
+        if (c == '"' && blockLevel == 0) {
+            currentColor = parseJsonColor(filePtr, c);
+            // printf("current color set to: %s\n", currentColor);
+        }
+        if (c == '"' && blockLevel == 1) {
+            keys = parseJsonKeyword(filePtr, c, currentColor, keys);
+        }
+        if (c == '{') {
+            blockLevel++;
+            if (blockLevel > 2) {
+                perror("invalid json, deep to block\n");
+            }
+        }
+        if (c == '}')
+            blockLevel--;
+        c = fgetc(filePtr);
+    }
+    if (blockLevel != 0) {
+        perror("invalid json, didnt end block\n");
+    }
+    if (!feof(filePtr)) {
+        perror("failed to parse keyfile\n");
+    }
+    fclose(filePtr);
+    return keys;
+}
+
+struct keyword* keys = NULL;
+char* fileName = NULL;
+char* keyFileName = NULL;
+bool appendKeys = false;
+char* fileContents = NULL;
+void parseArgs(int argc, char* argv[])
+{
+    /* parse input arguments for information and flags*/
+    for (int i = 1; i < argc; i++) {
+        if (argv[i][0] != '-') {
+            if (fileName != NULL) {
+                printf("Only one filename can be entered\n");
+                exit(1);
+            }
+            fileName = argv[i];
+
+        } else
+            switch (argv[i][1]) {
+            case 'k':
+                /*keyfile flag*/
+                if (argv[i][2] == 'a')
+                    /*append to default flag*/
+                    appendKeys = true;
+                i++;
+                if (i >= argc || argv[i][0] == '-') {
+                    printf("Usage:\t -k <input file>\n");
+                    exit(1);
+                } else {
+                    keyFileName = argv[i];
+                }
+                break;
+            case 'm':
+                /*parse string itead of input flag*/
+                break;
+            }
+    }
+    if (fileName == NULL && fileContents == NULL) {
+        printf("Usage:\t <input file> or use -m\n");
+        exit(1);
+    }
+}
+
+int main(int argc, char* argv[])
+{
+    parseArgs(argc, argv);
+    /*set default values*/
+    if (keyFileName == NULL || appendKeys) {
+        keys = setDefaultKeywords();
+    }
+    /* parse keywords*/
+    if (keyFileName != NULL) {
+        keys = parseJsonKeyfile(keyFileName, keys);
+    }
+
+    struct keyword *tmp, *tmp2;
+
+    /* parse keywords*/
+    if (fileName != NULL) {
+        char* fileContents = readFile(fileName /*put file path here*/);
+        parseForKeywords(keys, fileContents, tmp);
+    }
 
     /* free the hash table contents */
-    struct keyword* tmp2;
+
     HASH_ITER(hh, keys, tmp, tmp2)
     {
         HASH_DEL(keys, tmp);
@@ -119,3 +255,14 @@ int main(int argc, char* argv[])
     }
     return 0;
 }
+
+// old part of maic how much space to allocaten functio
+/*
+    FILE* outputPtr = fopen("output", "w");
+
+    if (outputPtr == NULL) {
+        perror("fopen() error");
+        exit(1);
+    }
+    fclose(outputPtr);
+*/
