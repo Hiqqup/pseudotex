@@ -21,3 +21,14 @@ See:
 ```
 for Help
 
+# Examples
+
+```sh
+./pseudotex input >> output.tex
+```
+To append input to an existing Tex file
+
+```sh
+./pseudotex -m "$(xclip -o -sel c)"| xclip -sel c
+```
+To directly convert your clipboard clipboard assuming you are using X
