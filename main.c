@@ -73,7 +73,9 @@ void parseForKeywords(struct keyword* keys, char* fileContents, struct keyword* 
             fileContents[i] >= 97 && fileContents[i] <= 122) {
             currentWord[currentWordIndex] = fileContents[i];
             currentWordIndex++;
-        } else if (fileContents[i] == '/' && fileContents[i + 1] == '/') {
+        }
+        /* handle comments*/
+        else if (fileContents[i] == '/' && fileContents[i + 1] == '/') {
             printf("\\textcolor{gray}{");
             while (fileContents[i] != '\n') {
                 printf("%c", fileContents[i]);
@@ -94,6 +96,8 @@ void parseForKeywords(struct keyword* keys, char* fileContents, struct keyword* 
             printf("%c", fileContents[i]);
         }
     }
+
+    printf("%s\n", currentWord);
     printf("\\end{Verbatim}\n");
 }
 
@@ -217,6 +221,8 @@ void parseArgs(int argc, char* argv[])
                 break;
             case 'm':
                 /*parse string itead of input flag*/
+                i++;
+                fileContents = argv[i];
                 break;
             }
     }
@@ -242,7 +248,9 @@ int main(int argc, char* argv[])
 
     /* parse keywords*/
     if (fileName != NULL) {
-        char* fileContents = readFile(fileName /*put file path here*/);
+        fileContents = readFile(fileName /*put file path here*/);
+    }
+    if (fileContents != NULL) {
         parseForKeywords(keys, fileContents, tmp);
     }
 
