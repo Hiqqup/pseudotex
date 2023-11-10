@@ -1,8 +1,23 @@
-Usage:
+A tool to colorize Pseudocode for Verbatim Latex.
 
-clone the repo, cd into it
+> You need to add the lines:
+
+```latex
+\usepackage{fancyvrb}
+\usepackage{xcolor}
 ```
-make main
+> to the top of your document to have the code colored.
+
+# Compile
+In the repo:
+```sh
+make bin
 ```
 
-run the resulting binary, aint got filepath support yet
+# Usage
+See:
+```sh
+./pseudotex -h
+```
+for Help
+
