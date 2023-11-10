@@ -1,27 +1,26 @@
+# Pseudotex
 A tool to colorize Pseudocode for Verbatim Latex.
 
-> You need to add the lines:
-
+> You need to add these lines to the top of your document to have the code colored:
 ```latex
 \usepackage{fancyvrb}
 \usepackage{xcolor}
 ```
-> to the top of your document to have the code colored.
 
-# Compile
+## Compile
 In the repo:
 ```sh
 make bin
 ```
 
-# Usage
+## Usage
 See:
 ```sh
 ./pseudotex -h
 ```
 for Help
 
-# Examples
+## Examples
 
 ```sh
 ./pseudotex input >> output.tex
