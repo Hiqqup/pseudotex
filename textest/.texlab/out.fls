@@ -1,9 +1,0 @@
-PWD /home/ju/projects/pseudotex/textest
-INPUT /usr/share/texmf-dist/web2c/texmf.cnf
-INPUT /var/lib/texmf/web2c/pdftex/pdflatex.fmt
-INPUT /home/ju/projects/pseudotex/textest/out.tex
-OUTPUT .texlab/out.log
-INPUT /usr/share/texmf-dist/tex/latex/base/omscmr.fd
-INPUT /usr/share/texmf-dist/tex/latex/base/omscmr.fd
-INPUT /usr/share/texmf-dist/tex/latex/base/omscmr.fd
-INPUT /usr/share/texmf-dist/tex/latex/base/omscmr.fd

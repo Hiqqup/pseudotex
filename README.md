@@ -31,3 +31,25 @@ To append input to an existing Tex file
 ./pseudotex -m "$(xclip -o -sel c)"| xclip -sel c
 ```
 To directly convert your clipboard clipboard assuming you are using X
+
+---
+### Custom Keywordfile
+Always do <color>: {<key>,<key>,...}
+
+The defaults would look like this:
+
+```json
+"magenta":{
+    "fuction"
+    "for",
+    "do",
+    "if",
+    "then",
+    "end",
+    "return"
+},
+"cyan":{
+    "int"
+}
+```
+

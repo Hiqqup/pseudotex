@@ -228,10 +228,9 @@ void parseArgs(int argc, char* argv[])
                 printf("Flags:\n");
                 printf("\t-h\t for help\n");
                 printf("\t-m\t to pass string instead of filepath\n");
-                printf("\t-k\t to pass custom keyfile\n");
-                printf("\t-ka\t to pass custom keyfile, and append and overwirte default\n");
+                printf("\t-k\t to pass custom Json-keyfile\n");
+                printf("\t-ka\t to pass custom Json-keyfile, and append and overwirte default\n");
                 printf("\n");
-                printf("consult info.md in repo for more information\n");
 
                 exit(0);
                 break;
