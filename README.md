@@ -32,9 +32,11 @@ To append input to an existing Tex file
 ```
 To directly convert your clipboard clipboard assuming you are using X
 
+You could create an alias or put the binary into /usr/local/bin, so you dont have to type the binary path.
+
 ---
 ### Custom Keywordfile
-Always do <color>: {<key>,<key>,...}
+Always do ```<color>: {<key>,<key>,...}```
 
 The defaults would look like this:
 
