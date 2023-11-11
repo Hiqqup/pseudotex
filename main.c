@@ -27,7 +27,7 @@ struct keyword* addKeyword(char* key, char* color, struct keyword* keys)
 struct keyword* setDefaultKeywords()
 {
     struct keyword* keys = NULL;
-    keys = addKeyword("fuction", "magenta", keys);
+    keys = addKeyword("function", "magenta", keys);
     keys = addKeyword("for", "magenta", keys);
     keys = addKeyword("do", "magenta", keys);
     keys = addKeyword("if", "magenta", keys);
@@ -121,6 +121,7 @@ char* parseJsonColor(char* contents, int* i)
 }
 struct keyword* parseJsonKeyword(char* contents, int* i, char* color, struct keyword* keys)
 {
+
     char word[MAX_INPUT];
     int wordPtr = 0;
     *i += 1;
@@ -133,6 +134,7 @@ struct keyword* parseJsonKeyword(char* contents, int* i, char* color, struct key
         wordPtr++;
         *i += 1;
     }
+
     word[wordPtr] = '\0';
     *i += 1;
 
@@ -146,20 +148,25 @@ struct keyword* parseJsonKeyword(char* contents, int* i, char* color, struct key
         keys = addKeyword(word, color, keys);
     }
     // printf("Added Key: %s to Color: %s\n", word, color);
+    //
 
+    /*idk its soo wierd code wont work without this linebreak*/
+    printf("\n");
     return keys;
 }
 struct keyword* parseJsonKeyfile(char* contents, struct keyword* keys)
 {
 
-    printf("contents: %s\n", contents);
     int blockLevel = 0;
-    char* currentColor;
+    char* currentColor = NULL;
     int* i = malloc(sizeof(int));
     for (*i = 0; *i < strlen(contents); *i += 1) {
         if (contents[*i] == '"' && blockLevel == 0) {
+            // if (currentColor != NULL) {
+            //     free(currentColor);
+            // }
             currentColor = parseJsonColor(contents, i);
-            //  printf("current color set to: %s\n", currentColor);
+            // printf("current color set to: %s\n", currentColor);
         }
         if (contents[*i] == '"' && blockLevel == 1) {
             keys = parseJsonKeyword(contents, i, currentColor, keys);
@@ -168,6 +175,7 @@ struct keyword* parseJsonKeyfile(char* contents, struct keyword* keys)
             blockLevel++;
             if (blockLevel > 2) {
                 perror("invalid json, deep to block\n");
+                exit(1);
             }
         }
         if (contents[*i] == '}')
@@ -175,14 +183,20 @@ struct keyword* parseJsonKeyfile(char* contents, struct keyword* keys)
     }
     if (blockLevel != 0) {
         perror("invalid json, didnt end block\n");
+        exit(1);
     }
-    // free(i);
-    // free(contents);
+    // if (currentColor != NULL) {
+    //     free(currentColor);
+    // }
+
+    free(i);
+
     return keys;
 }
 
 struct keyword* keys = NULL;
 char* fileContents = NULL;
+bool fileContentsAllocated = false;
 void parseArgs(int argc, char* argv[])
 {
     /* parse input arguments for information and flags*/
@@ -194,6 +208,7 @@ void parseArgs(int argc, char* argv[])
                 exit(1);
             }
             fileContents = readFile(argv[i]);
+            fileContentsAllocated = true;
 
         } else
             switch (argv[i][1]) {
@@ -269,6 +284,7 @@ void parseArgs(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
+
     parseArgs(argc, argv);
 
     struct keyword *tmp, *tmp2;
@@ -278,6 +294,9 @@ int main(int argc, char* argv[])
         parseForKeywords(keys, fileContents, tmp);
     } else {
         printf("no input provided\n");
+    }
+    if (fileContentsAllocated) {
+        free(fileContents);
     }
 
     /* free the hash table contents */
@@ -289,14 +308,3 @@ int main(int argc, char* argv[])
     }
     return 0;
 }
-
-// old part of maic how much space to allocaten functio
-/*
-    FILE* outputPtr = fopen("output", "w");
-
-    if (outputPtr == NULL) {
-        perror("fopen() error");
-        exit(1);
-    }
-    fclose(outputPtr);
-*/
